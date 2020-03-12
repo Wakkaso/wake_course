@@ -1,0 +1,49 @@
+#! /usr/bin/vvp
+:ivl_version "10.3 (stable)" "(v10_3)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 12;
+:vpi_module "system";
+:vpi_module "vhdl_sys";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0x5623bb53e0d0 .scope module, "concatenation_tb" "concatenation_tb" 2 2;
+ .timescale -9 -12;
+v0x5623bb584a80_0 .net "big_edndian", 31 0, L_0x5623bb584fa0;  1 drivers
+v0x5623bb584b40_0 .var "little_endian", 31 0;
+S_0x5623bb53e250 .scope module, "uut" "concatenation" 2 11, 3 21 0, S_0x5623bb53e0d0;
+ .timescale -9 -12;
+    .port_info 0 /INPUT 32 "little_endian"
+    .port_info 1 /OUTPUT 32 "big_edndian"
+v0x5623bb574680_0 .net *"_s1", 7 0, L_0x5623bb584c10;  1 drivers
+v0x5623bb584590_0 .net *"_s3", 7 0, L_0x5623bb584d30;  1 drivers
+v0x5623bb584670_0 .net *"_s5", 7 0, L_0x5623bb584dd0;  1 drivers
+v0x5623bb584730_0 .net *"_s7", 7 0, L_0x5623bb584ea0;  1 drivers
+v0x5623bb584810_0 .net "big_edndian", 31 0, L_0x5623bb584fa0;  alias, 1 drivers
+v0x5623bb584940_0 .net "little_endian", 31 0, v0x5623bb584b40_0;  1 drivers
+L_0x5623bb584c10 .part v0x5623bb584b40_0, 0, 8;
+L_0x5623bb584d30 .part v0x5623bb584b40_0, 8, 8;
+L_0x5623bb584dd0 .part v0x5623bb584b40_0, 16, 8;
+L_0x5623bb584ea0 .part v0x5623bb584b40_0, 24, 8;
+L_0x5623bb584fa0 .concat [ 8 8 8 8], L_0x5623bb584ea0, L_0x5623bb584dd0, L_0x5623bb584d30, L_0x5623bb584c10;
+    .scope S_0x5623bb53e0d0;
+T_0 ;
+    %vpi_call 2 18 "$dumpfile", "testbench.vcd" {0 0 0};
+    %vpi_call 2 19 "$dumpvars", 32'sb00000000000000000000000000000000, S_0x5623bb53e250 {0 0 0};
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0x5623bb584b40_0, 0, 32;
+    %delay 50000, 0;
+    %pushi/vec4 305419896, 0, 32;
+    %store/vec4 v0x5623bb584b40_0, 0, 32;
+    %delay 50000, 0;
+    %pushi/vec4 2271560481, 0, 32;
+    %store/vec4 v0x5623bb584b40_0, 0, 32;
+    %delay 100000, 0;
+    %vpi_call 2 27 "$finish" {0 0 0};
+    %end;
+    .thread T_0;
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "concatenation_tb.v";
+    "concatenation.v";

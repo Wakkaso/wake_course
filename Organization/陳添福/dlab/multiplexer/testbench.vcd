@@ -1,0 +1,42 @@
+$date
+	Tue Mar 10 23:51:21 2020
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module testbench $end
+$scope module test $end
+$var wire 4 ! input1 [3:0] $end
+$var wire 4 " input2 [3:0] $end
+$var wire 4 # input3 [3:0] $end
+$var wire 4 $ input4 [3:0] $end
+$var wire 2 % sel [1:0] $end
+$var reg 4 & selected [3:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bx &
+bx %
+b100 $
+b11 #
+b10 "
+b1 !
+$end
+#20000
+b1 &
+b0 %
+#40000
+b10 &
+b1 %
+#60000
+b11 &
+b10 %
+#80000
+b100 &
+b11 %
+#120000

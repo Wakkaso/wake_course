@@ -1,0 +1,28 @@
+$date
+	Wed Mar 11 22:09:33 2020
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module concatenation_tb $end
+$scope module uut $end
+$var wire 32 ! little_endian [31:0] $end
+$var wire 32 " big_edndian [31:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b0 "
+b0 !
+$end
+#50000
+b1111000010101100011010000010010 "
+b10010001101000101011001111000 !
+#100000
+b100001010000110110010110000111 "
+b10000111011001010100001100100001 !
+#200000
