@@ -1,0 +1,5 @@
+set -tmpdir "C:/Users/Cool Jacky/Desktop/wake_course/Organization/WaterSo/lab0/xst/projnav.tmp"
+set -xsthdpdir "C:/Users/Cool Jacky/Desktop/wake_course/Organization/WaterSo/lab0/xst"
+elaborate
+-ifn mux_2to1.prj
+-ifmt mixed
