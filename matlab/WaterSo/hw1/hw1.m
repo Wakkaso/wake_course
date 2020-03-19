@@ -60,8 +60,8 @@ y1 = sin(x1)-x1;
 z1 = sin(y1.^2)-exp(x1)./x1;
 plot(x,z,'-',x1,z1,'or');
 
-disp('problem 2.4');clf; clear; clc;
-[x,y] = meshgrid(-10:0.5:10);
+disp('problem 2.4');%clf; clear; clc;
+[x,y] = meshgrid(-10:0.05:10);
 z = (x + y) ./ (x.^2 +  y.^2 + 1);
 meshc(z);
 shading faceted;
