@@ -12,7 +12,6 @@ module alu_bottom(
                comp,       //compare        (input)
                result,     //1 bit result   (output)
                set,         //1 bit set      (output)
-               overflow,    //1 bit overflow (output)
                less_out
                );
 
@@ -26,7 +25,7 @@ input         cin;
 input [2-1:0] operation;
 input [3-1:0] comp;
 
-output reg    result, overflow;
+output reg    result;
 output wire   set, less_out;
 
 parameter ALU_AND  = 2'b00;
@@ -41,7 +40,7 @@ assign a = A_invert^src1;
 assign b = B_invert^src2;
 //compare COM(less, equal, comp, comp_out);
 assign {sout, sum} = a+b+cin;
-assign less_out = (operation == ALU_SET) ? sum : 1'b0;
+assign less_out = sum;
 assign set = ((operation==ALU_ADD)||(operation==ALU_SET)) ? sout : 1'b0;
 
 always@( * )
@@ -54,21 +53,5 @@ begin
         default: result <= 1'b0;
     endcase
 end
-
-always@( * )
-begin
-    if(operation==ALU_ADD||operation==ALU_SET)begin
-        case({src1, src2, sum, B_invert})
-            4'b0010: overflow <= 1'b1;
-            4'b0111: overflow <= 1'b1;
-            4'b1001: overflow <= 1'b1;
-            4'b1100: overflow <= 1'b1;
-            default: overflow <= 1'b0;
-        endcase
-    end
-    else
-        overflow <= 1'b0;
-end
-
 
 endmodule
