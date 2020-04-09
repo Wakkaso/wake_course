@@ -1,4 +1,0 @@
-Peter MATLAB 90.5 80.4 9 Yes
-Mary MATLAB 95.6 85.7 9 Yes
-John MATLAB 60.0 55.9 6 No
-
