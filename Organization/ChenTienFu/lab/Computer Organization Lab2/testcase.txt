@@ -1,0 +1,10 @@
+number	OP	function	src1		src2		result		zcv
+1		d	NAND		11111111	11111111	eeeeeeee	000
+2		0	AND			ffff0000	0000ffff	00000000	100
+3		1	OR			9284fc02	8b71d6a6	9bf5fea6	000
+4		2	ADD		    ffffffff	00000001	00000000	110
+5       2   ADD         7fffffff    7fffffff    fffffffe    001        
+6		6	SUB 		c4fab894 	54b51e1e	70459a76	011
+7       6   SUB         76543210    01234567    7530eca9    010
+8		7	SLT 		00000000	0fffffff	00000001	000
+9		C	NOR			00000000	00000000	ffffffff	000
