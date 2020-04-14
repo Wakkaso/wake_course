@@ -1,17 +1,11 @@
 module adder(
-    input      reset_n,
-    input      clk_i,
-	input      [3:0] input1,
-	input      [3:0] input2,
-	output reg [7:0] added
+    input      in_a,
+	 input		in_b,
+	 output		sum,
+		output   cout
 );
 
-always @( posedge clk_i ) begin
-	if( !reset_n ) begin
-		added <= 0;
-	end
-	else begin
-		added <= input1 + input2;
-	end
-end
+and a1(cout,in_a,in_b);
+xor x1(sum,in_a,in_b);
+
 endmodule
