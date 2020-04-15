@@ -10,9 +10,9 @@ module alu(
 	input	  [32-1:0]	src2,          // 32 bits source 2          (input)
 	input   [ 4-1:0] 	ALU_control,   // 4 bits ALU control input  (input)
 	output reg  [32-1:0]	result,        // 32 bits result            (output)
-	output reg  zero,          // 1 bit when the output is 0, zero must be set (output)
-	output reg  cout,          // 1 bit carry out           (output)
-	output reg  overflow       // 1 bit overflow            (output)
+	output reg zero,          // 1 bit when the output is 0, zero must be set (output)
+	output reg cout,          // 1 bit carry out           (output)
+	output reg overflow       // 1 bit overflow            (output)
 	);
 
 /* Write your code HERE */
@@ -35,7 +35,7 @@ module alu(
 	wire  less;
 
 	assign aInvert = ( (ALU_control == ALU_NOR ) || ( ALU_control == ALU_NAND ) ) ? 1'b1 : 1'b0;
-	assign bInvert = ( (ALU_control == ALU_SUB ) || ( ALU_control == ALU_NOR ) || ( ALU_control == ALU_NAND )) ? 1'b1 : 1'b0;
+	assign bInvert = ( (ALU_control == ALU_SUB ) || ( ALU_control == ALU_SLT ) || ( ALU_control == ALU_NOR ) || ( ALU_control == ALU_NAND )) ? 1'b1 : 1'b0;
 	assign complementAddOne = ( (ALU_control == ALU_SUB) || ( ALU_control == ALU_SLT) )? 1'b1 : 1'b0; 
 
 
@@ -82,15 +82,13 @@ module alu(
 																											  2'bxx;
 	always@(*)begin
 	  if( rst_n )begin
-		if(ALU_control==ALU_SLT)begin
-			$display("less");
-			$display(less);
-			end
-		 result <= alu_result; 
-		 zero   <= !result ;
-		 cout   <= ( (ALU_control == ALU_ADD) || (ALU_control == ALU_SUB) ) ? co31 : 1'b0; 
-		 overflow <= alu_overflow; 
-
+		if(ALU_control == ALU_ADD||ALU_control == ALU_SUB)begin
+			overflow <= alu_overflow; 
+		end
+		else overflow  <= 1'b0;
+		result <= alu_result; 
+		zero   <= !result ;
+		cout   <= ( (ALU_control == ALU_ADD) || (ALU_control == ALU_SUB) ) ? co31 : 1'b0; 
 	  end
 	  else begin
 		 result    <= 1'b0;
