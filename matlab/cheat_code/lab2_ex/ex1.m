@@ -43,14 +43,14 @@ while (t<2)
     t = t + dt;
     clf;
     subplot(1,2,1);
-    plot(fig(:,1), fig(:,2),'.');
+    plot(fig(:,1), fig(:,2),'-');
     hold on;
     plot(p1(1), p1(2),'bo', 'linewidth', 3);
     grid on;
     axis([0 400 -100 100]);
     
     subplot(1,2,2);
-    plot(fig2(:,1), fig2(:,2),'.');
+    plot(fig2(:,1), fig2(:,2),'-');
     hold on;
     plot(p2(1), p2(2),'bo', 'linewidth', 3);
     grid on;

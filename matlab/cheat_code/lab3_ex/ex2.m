@@ -10,26 +10,28 @@ s = size(Id);
 w = s(2);
 h = s(1);
 %meshgrid version
-%{
-
-x= [1:w];
-fx = abs(cos(x./w.*2.*pi));
-y= [1:h];
-fy = abs(cos(x./h.*2.*pi));
-
-[x y] = meshgrid(fx, fy);
 
 op = input('input op: ');
+for a = [1:0.02:3]
+    clf;
+    x= [1:w];
+    fx = abs(cos(x./w.*2.*pi));
+    y= [1:h];
+        fy = abs(cos(y./h.*2.*pi));
 
-if op == 0
-    return;
-elseif op == 1
-    Id = Id.*fx;
-elseif op == 2
-    Id = Id.*fy;
+    [x ,y] = meshgrid(fx, fy);
+
+
+    if op == 0
+        return;
+    elseif op == 1
+        Id = Id.*x.*a;
+    elseif op == 2
+        Id = Id.*y.*a;
+    end
+    imshow(Id);
 end
-imshow(Id);
-%}
+%{
 
 op = input('input op: ');
 
@@ -56,6 +58,5 @@ elseif op == 2
     end
     
 end
-
-
+%}
         
