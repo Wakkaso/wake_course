@@ -45,7 +45,7 @@ end
 
 
 close all; clf; clear; clc;
-%}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -96,28 +96,58 @@ while (t<=2)
     t = t + dt;				% time
    
     clf;
-    subplot(3,1,1);
+    subplot(1,2,1);
     plot(fig(:,1), fig(:,2),'-');
     hold on;
-    viscircles([p1(1) p1(2)], 1, 'color', 'b');
-   % plot(p1(1), p1(2),'bo', 'linewidth', 3);
+    %viscircles([p1(1) p1(2)], 1, 'color', 'b');
+    plot(p1(1), p1(2),'bo', 'linewidth', 3);
     grid on;
     axis([0 400 -100 100]);
 
-    subplot(3,1,2);
+    subplot(1,2,2);
     plot(fig2(:,1), fig2(:,2),'-');
     hold on;
     viscircles([p2(1) p2(2)], 1, 'color', 'b');
     grid on;
     axis([0 400 -100 100]);
     
-    subplot(3,1,3);
-    plot(fig2(:,1), fig2(:,2),'-');
-    hold on;
-    viscircles([p2(1) p2(2)], 1, 'color', 'b');
-    grid on;
-    axis([0 400 -100 100]);
+
     pause(dt);
 end
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+close all; clf; clear; clc;
+disp('Lab Problem 2.2');
+
+a = input('input a: ');
+if a == 0
+    disp('Thanks for playing');
+end
+dx = 0.05;
+dx = input('input dx: ');
+while dx<0||dx>1
+    dx = input('dx must be inside (0, 1]. ');
+end
+
+x = -10:dx:10;
+y = abs(x)+a.*sin(x);
+x0 = -10;
+while x0<=10
+    clf;
+    plot(x, y, 'linewidth', 3);
+    hold on;
+    y0 = abs(x0)+a.*sin(x0);
+    plot(x0, y0, 'o', 'color', 'r');
+    grid on;
+    axis([-10 10 -20 20]);
+    x0 = x0+dx;
+    pause(0.001);
+end
+
+
+
+
 
 
