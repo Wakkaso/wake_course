@@ -25,11 +25,11 @@ Press Control-C to break the program at any time.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Write down the information.
 % Problem number: Lab 1.6
-% Student Name:  …
-% Student ID: …
-% Email address: …
+% Student Name:  ?
+% Student ID: ?
+% Email address: ?
 % Department: 
-% Date: ….
+% Date: ?.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clf; clear; clc;		% clear the current figure
         				% clear variables, and clear screen
@@ -38,27 +38,29 @@ disp('Lab Problem 1.6') 	% show Lab Problem 1.6
 fprintf('\n');
 fprintf('Student Name:... ID:...\n');
 
-[x; y] = GridMesh([-10:0.5:10]);     %
-z = 2.*exp(-(y-5)2) sin(x) + exp(-x^2) cos(y);
+[x, y] = meshgrid(-10:0.5:10);     %
+z = 2.*exp(-(y-5).^2).*sin(x) + exp(-x.^2).*cos(y);
 while true
     clf
-
     surf(z);
-    ylim([-2,2])
+    zlim([-2,2]);
+    
+ 
     n = input('Press enter to quit.');
-    sx = size(x)(1);
+    sx = size(x);
     sy = size(y);
-    ix = sx[2]; % get the number of elements along the x-axis
-    iy = sy[1]; % get the number of elements along the y-axis
+    ix = sx(1); % get the number of elements along the x-axis
+    iy = sy(1); % get the number of elements along the y-axis
     z1 = z;
     % for each interior point do
-    for i = [(1):(ix-1)]
-        for j = (1+1):(iy)]
+    for i = (2):(ix-1)
+        for j = (2):(iy-1)
             %compute the average for a 3x3 grid points.
-           z1(j, i) = (sum(z((i-1):(i+1), (j-3):(j+3)))));
-        
+           z1(i, j) = 1/9.*(sum(sum(z((i-1):(i+1), (j-1):(j+1)))));
+           z(i,j)=z1(i,j);
+        end
     end
-    z1 = z1;
+    
 end
 
 

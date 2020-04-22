@@ -8,7 +8,7 @@
 % Date: ¡K.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all; clear; clc;		 
-disp('Midterm Problem 1.1');
+disp('Midterm Probl()em 1.1');
 
 while(1)
     a = input('Input a: ');
