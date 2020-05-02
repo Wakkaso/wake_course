@@ -1,0 +1,10 @@
+<<<<<<< HEAD
+Az Be  Ca 34 56 78
+Dt  Ff 20 12 37
+U E fF         25 
+=======
+Az Be  Ca 34 56 78
+Dt  Ff 20 12 37
+U E fF         25 
+>>>>>>> 542a0a8303d7514c52d858d6ed680356c059c9eb
+Pt Ah fT 21 98
