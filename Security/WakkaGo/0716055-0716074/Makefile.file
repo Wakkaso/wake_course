@@ -1,4 +1,0 @@
-all:
-	gcc -o dns_attack 0716055.c
-clean:
-	rm -f dns_attack
