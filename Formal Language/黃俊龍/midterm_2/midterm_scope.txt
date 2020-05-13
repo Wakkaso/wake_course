@@ -1,0 +1,70 @@
+Context-Free Languages: Chapter 2.1~Chapter 2.3
+
+Closure Properties of CFL: [3] Lecture 15
+
+- union, concatenation, star (Kleene closure)
+
+Left Recursion Elimination:
+
+- Immediate left recursion elimination: [5] Chapter 2.5.13.8
+
+- Indirect left recursion elimination: [2] Chapter 6.4, [5] Chapter 2.5.13.8
+
+[4] S. C. Reghizzi, L. Breveglieri, and A. Morzenti, Formal Languages and Compilation, 3rd Edition, 	
+https://link.springer.com/book/10.1007/978-3-030-04879-2
+
+
+################################
+
+HW ref
+2.4a, 2.4d, 2.11, 2.14, 2.16, 2.42b, 2.42c
+
+
+################################
+
+
+Chapter 2
+
+
+Properties of Context-Free Languages
+
+- Closed under union, concatenate, and star (Kleence closure): [1] Chapter 6.5 (Theorem 6.3, Exercise 6.10)
+
+Parsing
+
+- General Top-Down Parsing: [2] Chapter 6.1
+
+- Breadth-First Parsing: [2] Chapter 6.3
+
+- Left-Recursion Elimination: [2] Chapter 6.4, [4] Chapter 2.5.13.8
+
+- Depth First Parsing: [2] Chapter 6.5
+
+- Recursive Descent Paring: [5] Chapter 3.1.1
+
+- LL(1): [2] Chapter 8.1
+
+
+################################
+
+
+
+Reference
+
+[1] A. Singh, Elements of Computation Theory
+
+  https://link.springer.com/book/10.1007/978-1-84882-497-3
+
+[2] D. Grune and C. J.H. Jacobs, Parsing Technologies: A Practical Guide
+
+  https://link.springer.com/book/10.1007/978-0-387-68954-8
+
+[3] UIUC CS 373: Introduction to Theory of Computation, Spring 2013
+
+  https://courses.engr.illinois.edu/cs373/sp2013/Lectures/
+
+[4] S. C. Reghizzi, L. Breveglieri, and A. Morzenti, Formal Languages and Compilation, 3rd Edition, https://link.springer.com/book/10.1007/978-3-030-04879-2
+
+[5] D. Grune, K. van Reeuwijk, H. E. Bal, C. J.H. Jacobs, and K. Langendoen, Modern Compiler Design, 2nd Edition, https://link.springer.com/book/10.1007/978-1-4614-4699-6
+
+[6] Andrew W. Appel, Modern Compiler Implementation in Java, 2nd Edition.
