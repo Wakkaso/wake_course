@@ -19,7 +19,6 @@ for x = 0:0.01:2*pi
     r0 = cos(2.*x0).*sin(2.*x0);
     clf;
     h = polar(x0,r0);
-    get(h,'YData')
     patch(get(h,'XData'),get(h,'YData'),'y');
     
     pause(0.033);
