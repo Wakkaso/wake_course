@@ -1,0 +1,65 @@
+clf; clear; clc;
+disp('problem 1.1');
+
+
+c = -1; sigma = 3; r1 = 2.5; r2 = 3.5;
+y=@(x) gaussmf(x, [sigma c]);
+A=integral(y, 2.5, 3.5);
+a = zeros(1,1000);
+b = zeros(1,100000);
+cc = zeros(1,1000000);
+j = 1;
+while (j<=1000)
+    x = r1 + (r2-r1)*rand(1);
+    p  = gaussmf(x, [sigma c])/A;
+    r = x*p*(r2-r1);
+    a(j) = r;
+    j = j +1;
+end
+j = 1;
+while (j<=100000)
+    x = r1 + (r2-r1)*rand(1);
+    p  = gaussmf(x, [sigma, c])/A;
+    r = x*p*(r2-r1);
+    b(j) = r;
+    j = j +1;
+end
+j = 1;
+while (j<=1000000)
+    x = r1 + (r2-r1)*rand(1);
+    p  = gaussmf(x, [sigma, c])/A;
+    r = x*p*(r2-r1);
+    cc(j) = r;
+    j = j +1;
+end
+fprintf('%f\n',mean(a));
+fprintf('%f\n',mean(b));
+fprintf('%f\n',mean(cc));
+fprintf('%f\n',std(a));
+fprintf('%f\n',std(b));
+fprintf('%f\n',std(cc));
+
+
+figure(1);
+x=(-9:0.01:7);
+y = 2.718281828.^(-(x+1).^2./18);
+plot(x, y ,'r');
+hold on;
+x1 = 2.5:0.01:3.5;
+y1 = 2.718281828.^(-(x1+1).^2./18);
+x1 = [x1 r2];
+y1 = [y1 0];
+x1 = [x1 r1];
+y1 = [y1 0];
+fill(x1, y1, 'b');
+axis([-10 8 0 1]);
+t1 = sprintf('n=1000; mean=%f; SD: %f;',mean(a),std(a));
+t2 = sprintf('n=100000; mean=%f; SD: %f;',mean(b),std(b));
+t3 = sprintf('n=1000000; mean=%f; SD: %f;',mean(cc),std(cc));
+
+title({t1; t2; t3});
+legend({'y(x)', 'Data'});
+
+
+
+
