@@ -60,7 +60,6 @@ switch op
     case 3
         I0 = imread('tmp.png');
         
-%         I = 0.5*I0;  % darker
         Id = im2double(I0);
         s = size(Id);
         h = s(1);
@@ -76,11 +75,10 @@ switch op
             ref+[dd/2 dd/2];...
             ref+[dd/2 -dd/2]...
             ];
-        K = ones(size(Id),'double')*0.5;
+        K = ones(size(Id),'double')*0.5;    %darker
         for k=(1:5)
             for i=(1:h)
                for j=(1:w) 
-                   
                    dis = norm([i j] - C(k,:));
                    if (dis<r2 && dis>r1)
                        K(i,j,:) = 2;
