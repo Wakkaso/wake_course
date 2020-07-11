@@ -1,0 +1,322 @@
+{% extends 'base/base.html' %} 
+
+{% block page_title %} 24小時連續資料查詢 {% endblock %}
+
+{% block page_content %}
+<div class="row" id="app">
+  <div class="col-sm-4 col-xs-12">
+    <label for="filed">場域</label>
+    <select class="form-control" id="field" v-model="active_field" @change="field_change">
+      <template v-for="field in fields">
+        <option :value="field.name" >{{ '{{' }}field.alias{{ '}}' }}</option>
+      </template>
+    </select>
+  </div>
+
+  <div class="col-sm-4 col-xs-12">
+    <label for="sensor">感測器</label>
+    <select class="form-control" id="sensor" v-model="active_sensor">
+      <template v-for="sensor in active_sensors">
+        <option :value="sensor.df_name">{{ '{{' }}sensor.alias{{ '}}' }}</option>
+      </template>
+    </select>
+  </div>
+
+  <div class="col-sm-4 col-xs-12">
+    <label for="range">區間</label>
+    <select class="form-control" id="interval">
+      <option value="1440">24小時</option>
+      <option value="60">1小時</option>
+      <option value="10">10分鐘</option>
+    </select>
+  </div>
+
+  <div class="col-xs-12">
+    <br>
+    <!-- interactive chart -->
+    <div class="box box-primary">
+      <div class="box-header with-border">
+        <i class="fa fa-bar-chart-o"></i>
+        <h3 class="box-title">連續資料圖表</h3>
+
+        <!--<div class="box-tools pull-right">
+          Real time
+          <div class="btn-group" id="realtime" data-toggle="btn-toggle">
+            <button type="button" class="btn btn-default btn-xs active" data-toggle="on">On</button>
+            <button type="button" class="btn btn-default btn-xs" data-toggle="off">Off</button>
+          </div>
+        </div>-->
+      </div>
+      <div class="box-body">
+        <div id="interactive" style="height: 300px;"></div>
+      </div>
+      <!-- /.box-body-->
+    </div>
+    <!-- /.box -->
+
+  </div>
+  <!-- /.col -->
+</div>
+
+{% endblock %}
+
+{% block page_script %}
+<!-- Page script -->
+<script>
+  var interactive_plot = null;
+  var updateInterval = 1000; //Fetch data ever x milliseconds
+  var apps = null; // Vue app
+  var previousPoint = null, previousLabel = null, temp_data = null;
+
+  $.fn.UseTooltip = function () {
+    $(this).bind("plothover", function (event, pos, item) {
+      if (item) {
+        if ((previousLabel != item.series.label) || 
+           (previousPoint != item.dataIndex)) {
+          previousPoint = item.dataIndex;
+          previousLabel = item.series.label;
+          $("#tooltip").remove();
+
+          let idx = item.datapoint[0];
+          let value = item.datapoint[1];
+
+          let color = item.series.color;                        
+       
+          showTooltip(item.pageX,
+                      item.pageY,
+                      color,
+                      temp_data[idx][0] + "<br><strong>" + value + "</strong>");
+          }
+      } else {
+        $("#tooltip").remove();
+        previousPoint = null;
+      }
+    });
+  };
+
+  function showTooltip(x, y, color, contents) {
+    $('<div id="tooltip">' + contents + '</div>').css({
+      position: 'absolute',
+      display: 'none',
+      top: y - 10,
+      left: x + 10,
+      border: '2px solid ' + color,
+      padding: '3px',
+      'font-size': '9px',
+      'border-radius': '5px',
+      'background-color': '#fff',
+      'font-family': 'Verdana, Arial, Helvetica, Tahoma, sans-serif',
+      opacity: 0.9
+    }).appendTo("body").fadeIn(200);
+  }
+
+  function getDate(date) {
+    let year = date.getFullYear();
+    let month = '' + (date.getMonth() + 1);
+    let day = '' + date.getDate();
+
+    let hour = '' + date.getHours();
+    let minute = '' + date.getMinutes();
+    let second = '' + date.getSeconds();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    if (hour.length < 2) hour = '0' + hour;
+    if (minute.length < 2) minute = '0' + minute;
+    if (second.length < 2) second = '0' + second;
+
+    return [year, month, day].join('-') + ' ' + [hour, minute, second].join(':');
+  }
+
+  function getData(field, sensor, interval, callback) {
+    let d = new Date();
+    et = getDate(d);
+    d.setMinutes(d.getMinutes() - Number(interval));
+    st = getDate(d);
+    $.ajax({
+      'url': '/datas/' + field + '/' + sensor + '?limit=9999999&start=' + st + '&end=' + et + '&i=' + interval,
+    }).done((data) => {
+      if(callback && data && data[sensor]) {
+        callback(data[sensor].reverse());
+      } else {
+        callback([]);
+      }
+    }).fail(() => {
+      callback([]);
+    });
+  }
+
+  /*
+  var realtime       = 'on' //If == to on then fetch data every x seconds. else stop fetching
+  function update() {
+
+    interactive_plot.setData([getRandomData()])
+
+    // Since the axes don't change, we don't need to call plot.setupGrid()
+    interactive_plot.draw()
+    if (realtime === 'on')
+      setTimeout(update, updateInterval)
+  }
+
+  //INITIALIZE REALTIME DATA FETCHING
+  if (realtime === 'on') {
+    //update()
+  }
+  //REALTIME TOGGLE
+  $('#realtime .btn').click(function () {
+    if ($(this).data('toggle') === 'on') {
+      realtime = 'on'
+    }
+    else {
+      realtime = 'off'
+    }
+    update()
+  })*/
+
+
+  function update() {
+    getData($('#field').val(), $('#sensor').val(), $('#interval').val(), (data) => {
+      let res = [];
+      let max = -Infinity;
+      let min = Infinity;
+      let x_tick = [];
+      let interval = Math.ceil(data.length / 10);
+      data.forEach((element, idx) => {
+        let value = parseFloat(element[1]);
+        if (value > max) {
+          max = value;
+        }
+        if (value < min) {
+          min = value;
+        }
+        res.push([idx, value]);
+        if (idx % interval == 0) {
+          x_tick.push([idx, element[0]]);
+        }
+      })
+
+      let y_max_index = 10 ** (Math.log10(max) - 1);
+      if (!y_max_index) { y_max_index = 1;}
+      let y_max = (Math.ceil(max / y_max_index) + 1) * y_max_index;
+
+      let y_min_index = 10 ** (Math.log10(min) - 1);
+      if (!y_min_index) { y_min_index = 1;}
+      let y_min = (Math.round(min / y_min_index) - 1) * y_min_index;
+
+      if (y_max == y_min) {
+        y_max += 10;
+        y_min -= 10;
+      }
+
+      if (y_min < 0) {
+        y_min = 0;
+      }
+
+      $.plot('#interactive', [res], {
+        grid  : {
+          borderColor: '#f3f3f3',
+          borderWidth: 1,
+          tickColor  : '#f3f3f3',
+          hoverable: true,
+          borderWidth: 2,
+          backgroundColor: { colors: ["#ffffff", "#EDF5FF"] }
+        },
+        series: {
+          shadowSize: 0, // Drawing is faster without shadows
+          color     : '#3c8dbc',
+          lines : {
+            fill : true, //Converts the line chart to area chart
+            color: '#3c8dbc',
+            show: true
+          },
+        },
+        yaxis : {
+          min: y_min,
+          max: y_max,
+          show: true
+        },
+        xaxis : {
+          show: true,
+          ticks: x_tick,
+          tickColor: 'transparent'
+        }
+      });
+      temp_data = data;
+      $('#interactive').UseTooltip();
+
+      setTimeout(update, updateInterval);
+    });
+  }
+
+  $(() => {
+    $.plot('#interactive', [], {
+      grid  : {
+        borderColor: '#f3f3f3',
+        borderWidth: 1,
+        tickColor  : '#f3f3f3'
+      },
+      series: {
+        shadowSize: 0, // Drawing is faster without shadows
+        color     : '#3c8dbc'
+      },
+      lines : {
+        fill : true, //Converts the line chart to area chart
+        color: '#3c8dbc'
+      },
+      yaxis : {
+        show: true
+      },
+      xaxis : {
+        show: true,
+        tickColor: 'transparent'
+      }
+    })
+    $('#interactive').UseTooltip();
+
+    // set Vue data
+    apps = new Vue({
+      el: '#app',
+      data: function () {
+        fields = {{ fields|safe }}.filter((data)=>{return data.sensors.length});
+        active_field = fields[0].name;
+        active_sensors = fields[0]['sensors'];
+        active_sensor = fields[0]['sensors'][0]['df_name'];
+        return {
+          fields: fields,
+          active_field: active_field,
+          active_sensors: active_sensors,
+          active_sensor: active_sensor
+        }
+      },
+      methods: {
+        field_change(e) {
+          this.active_sensors = [];
+          this.fields.forEach((field) => {
+            if (field.name == e.target.value) {
+              this.active_sensors = field['sensors'];
+              this.active_sensor = this.active_sensors[0]['df_name'];
+            }
+          })
+        }
+      }
+    })
+
+    let hash = window.location.hash.replace('#', '').split(',');
+    if(hash[0]){
+      apps.active_field = hash[0];
+      apps.fields.forEach((field) => {
+        if(field.name == hash[0]) {
+          apps.active_sensors = field['sensors'];
+          apps.active_sensor = this.active_sensors[0]['df_name'];
+        }
+      });
+    }
+    if(hash[1]){
+      apps.active_sensor = hash[1];
+    }
+
+    update();
+  });
+</script>
+{% endblock %}

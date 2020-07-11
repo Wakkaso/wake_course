@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+{% include 'base/head.html' %}
+<body class="hold-transition skin-black-iot sidebar-mini">
+<div class="wrapper">
+  {% include 'base/header.html' %}
+  {% include 'base/sidebar.html' %}
+
+	<!-- Content Wrapper. Contains page content -->
+	<div class="content-wrapper">
+	  <!-- Content Header (Page header) -->
+	  <section class="content-header">
+	    <h1>{% block page_title %}{% endblock %}  </h1>
+	  </section>
+
+	  <!-- Main content -->
+	  <section class="content">
+  		{% block page_content %}{% endblock %}
+	  </section>
+	</div>
+	
+  {% include 'base/footer.html' %}
+</div>
+<!-- ./wrapper -->
+
+{% include 'base/script.html' %}
+{% block page_script %}{% endblock %}
+</body>
+</html>

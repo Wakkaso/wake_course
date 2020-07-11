@@ -1,0 +1,104 @@
+{% macro content_box(fieldname, sensor, value='0') -%}
+  <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
+    <!-- small box -->
+    <div class="small-box {{sensor.bg_color}}">
+      <div class="inner">
+        <h3 id="{{fieldname}}_{{sensor.df_name}}" data-toggle="tooltip" title="">{{value}}</h3>
+        <p style="height: 2em">{{sensor.alias}} ({{sensor.unit}})</p>
+      </div>
+      <div class="icon">
+        <i class="fa {{sensor.icon}}"></i>
+      </div>
+      <a href="/demo/h/{{fieldname}}?token={{token}}#{{sensor.df_name}}" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+{%- endmacro %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>IoT Environment Monitor</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <!-- Bootstrap 3.3.7 -->
+<link rel="stylesheet" href="/static/bootstrap/dist/css/bootstrap.min.css">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.min.css">
+<!-- Ionicons -->
+<link rel="stylesheet" href="/static/Ionicons/css/ionicons.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/dist/css/AdminLTE.min.css">
+<!-- AdminLTE Skins. Choose a skin from the css/skins
+     folder instead of downloading all of them to reduce the load. -->
+<link rel="stylesheet" href="/static/dist/css/skins/skin-black-iot.css">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+<!-- Google Font -->
+<link rel="stylesheet"
+      href="/static/fonts/google.fonts.css">
+</head>
+<body class="hold-transition login-page">
+
+<!-- jQuery 3 -->
+<script src="/static/jquery/dist/jquery.min.js"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="/static/bootstrap/dist/js/bootstrap.min.js"></script>
+<!-- iCheck -->
+
+  <div class="tab-pane active" id="{{fieldname}}" style="margin: 1em">
+    <div class="row">
+      {% for sensor in sensors %}
+        {{ content_box(fieldname, sensor)}}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Page script -->
+  <script>
+    $(() => {
+      // update monitor date
+
+      let request_url = '';
+      if ('{{field}}'=='None') request_url = '/demodatas?limit=1'; 
+      else request_url = '/api/demo/datas/{{field}}?limit=1&token={{token}}';
+
+      function update() {
+        if (!$('.active').length) {
+          setTimeout(update, 1000);
+          return;
+        }
+        let field = $('.active').attr('id').replace('tab_', '');
+        let ajax_obj = $.ajax({
+          url: request_url,
+          type:'GET'
+        }).done((data) => {
+          let expire_date = new Date();
+          expire_date.setHours(expire_date.getHours() - 1);
+          for(key in data) {
+            if(data[key][0]) {
+              if(new Date(data[key][0][0].replace(/-/g, '/')) < expire_date) {
+                $('#' + field + '_' + key).html('<S>' + data[key][0][1] + '</S>');
+                $('#' + field + '_' + key).attr('data-original-title', 'The last data was taken at ' + data[key][0][0] + '.');
+              } else {
+                $('#' + field + '_' + key).html(data[key][0][1]);
+                $('#' + field + '_' + key).attr('data-original-title', '');
+              }
+            }
+          }
+        }).always(() => {
+          setTimeout(update, 1000);
+        });
+      }
+      update(); 
+    })
+  </script>
+</body>
+</html>

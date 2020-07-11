@@ -1,0 +1,499 @@
+{% extends 'base/base.html' %} 
+
+{% block page_title %} 歷史資料查詢 {% endblock %}
+
+{% block page_content %}
+<div class="row" id="app">
+  <!-- field 1 -->
+  <div class="col-sm-6 col-xs-12">
+    <label for="field1">場域1:</label>
+    <select class="form-control" id="field1" v-model="active_field1" @change="field1_change">
+      <template v-for="field in fields">
+        <option :value="field.name">{{ '{{' }}field.alias{{ '}}' }}</option>
+      </template>
+    </select>
+  </div>
+
+  <!-- sensor1 -->
+  <div class="col-sm-6 col-xs-12">
+    <label for="sensor1">感測器1: </label>
+    <select class="form-control" id="sensor1">
+      <template v-for="sensor in active_sensor1">
+        <option :value="sensor.df_name">{{ '{{' }}sensor.alias{{ '}}' }}</option>
+      </template>
+    </select>
+  </div>
+
+  <!-- field 2 -->
+  <div class="col-sm-6 col-xs-12">
+    <label for="field2">場域2: </label>
+    <select class="form-control" id="field2" v-model="active_field2" @change="field2_change">
+      <option value="">無</option>
+      <template v-for="field in fields">
+        <option :value="field.name">{{ '{{' }}field.alias{{ '}}' }}</option>
+      </template>
+    </select>
+  </div>
+
+  <!-- sensor2 -->
+  <div class="col-sm-6 col-xs-12">
+    <label for="sensor2">感測器2: </label>
+    <select class="form-control" id="sensor2">
+      <template v-for="sensor in active_sensor2">
+        <option :value="sensor.df_name">{{ '{{' }}sensor.alias{{ '}}' }}</option>
+      </template>
+    </select>
+  </div>
+
+  <!-- start time -->
+  <div class="col-sm-4 col-xs-12">
+    <label for="start-time">開始時間: </label>
+    <div class="input-group date">
+      <div class="input-group-addon">
+        <i class="fa fa-calendar"></i>
+      </div>
+      <input class="form-control" type='date' id="start-time" />
+    </div>
+  </div>
+
+  <!-- end time -->
+  <div class="col-sm-4 col-xs-12">
+    <label for="end-time">結束時間: </label>
+    <div class="input-group date">
+      <div class="input-group-addon">
+        <i class="fa fa-calendar"></i>
+      </div>
+      <input class="form-control" type='date' id="end-time" />
+    </div>
+  </div>
+
+  <!-- interval -->
+  <div class="col-sm-4 col-xs-12">
+    <label for="interval">Interval:</label>
+    <select class="form-control" id="interval">
+      <option value="second">秒</option>
+      <option value="minute">分</option>
+      <option value="hour" selected>小時</option>
+      <option value="day">天</option>
+    </select>
+  </div>
+  <div class="col-sm-12 col-xs-12">
+    <br>
+    <input type="button" onclick="update();" value="查詢" />
+    <input type="button" onclick="download_field1();" value="場域1下載" />
+    <input type="button" onclick="download_field2();" value="場域2下載" />
+  </div>
+  <div class="col-xs-12">
+    <!-- interactive chart -->
+    <br>
+    <div class="box box-primary">
+      <div class="box-header with-border">
+        <i class="fa fa-bar-chart-o"></i>
+
+        <h3 class="box-title">歷史圖表</h3>
+
+        <div class="box-tools pull-right">
+          <!--
+          Real time
+          <div class="btn-group" id="realtime" data-toggle="btn-toggle">
+            <button type="button" class="btn btn-default btn-xs active" data-toggle="on">On</button>
+            <button type="button" class="btn btn-default btn-xs" data-toggle="off">Off</button>
+          </div>
+          -->
+        </div>
+      </div>
+      <div class="box-body"><div id="interactive" style="height: 300px;"></div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block page_script %}
+<script>
+  var interactive_plot = null;
+
+  // flot hover tooltip start
+  var previousPoint = null, previousLabel = null, temp_data = null;
+  $.fn.UseTooltip = function () {
+    $(this).bind("plothover", function (event, pos, item) {
+      if (item) {
+        if ((previousLabel != item.series.label) || 
+            (previousPoint != item.dataIndex)) {
+          previousPoint = item.dataIndex;
+          previousLabel = item.series.label;
+          $("#tooltip").remove();
+
+          let idx = item.datapoint[0];
+          let value = item.datapoint[1];
+          let color = item.series.color;                        
+          let date = '';
+
+          let element = temp_data[item.series.label][idx];
+
+          if (element.minute) {
+            date = element.date + ' ' + element.hour + ':' + element.minute +':00';
+          } else if (element.hour) {
+            date = element.date + ' ' + element.hour + ':00:00';
+          } else if (element.date) {
+            date = element.date;
+          } else {
+            date = element.timestamp;
+          }
+         
+          showTooltip(item.pageX,
+                      item.pageY,
+                      color,
+                      item.series.label + "<br>" + date +"<br><strong>" + value + "</strong>");
+          }
+      } else {
+        $("#tooltip").remove();
+        previousPoint = null;
+      }
+    });
+  };
+ 
+  function showTooltip(x, y, color, contents) {
+    $('<div id="tooltip">' + contents + '</div>').css({
+      position: 'absolute',
+      display: 'none',
+      top: y - 10,
+      left: x + 10,
+      border: '2px solid ' + color,
+      padding: '3px',
+      'font-size': '9px',
+      'border-radius': '5px',
+      'background-color': '#fff',
+      'font-family': 'Verdana, Arial, Helvetica, Tahoma, sans-serif',
+      opacity: 0.9
+    }).appendTo("body").fadeIn(200);
+  }
+  // flot tooltip end
+
+  // get history data
+  function getData(callback) {
+    let field1 = $('#field1').val();
+    let field2 = $('#field2').val();
+    let sensor1 = $('#sensor1').val();
+    let sensor2 = $('#sensor2').val() || "";
+    let starttime = $('#start-time')[0].value;
+    let endtime = $('#end-time')[0].value;
+    let interval = $('#interval').val();
+    $.ajax({
+      'url': '/api/datas?f1=' + field1 + '&f2=' + field2 + '&s1=' + sensor1 +'&s2=' + sensor2 + '&st=' + starttime + '&et=' + endtime + '&i=' + interval,
+    }).done((data) => {
+      if (callback && data){
+        callback(data);
+      } else if (callback) {
+        callback();
+      }
+    }).fail(() => {
+      callback();
+    });
+  }
+
+  function update() {
+    getData((data) => {
+      if (data == undefined) {
+          return;
+      }
+ 
+      let dataset = [];
+      let yaxes = [];
+      let sensors = Object.keys(data);
+      if (!sensors.length) { return; }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+      let source_fields, target1, target2 = null;
+      let source1 = [null, null];
+      let source2 = [null, null];
+
+      source1[1] = sensors[0];
+      source_fields  = Object.keys(data[source1[1]]);
+      if (!source_fields.length)  return;
+      source1[0] =  source_fields[0];
+     
+      if (sensors.length >= 2){
+          source2[1] = sensors[1];
+          source_fields  = Object.keys(data[source2[1]]);
+          source2[0] =  source_fields[0];
+      }
+      else if(source_fields.length >= 2) { 
+          source2[1] = sensors[0];
+          source2[0] =  source_fields[1];
+      }
+
+      if ($('#field1').val() == source1[0]) {
+          target1 = source1;
+          target2 = source2;
+      }
+      else{
+          target1 = source2;
+          target2 = source1;
+      }
+///////////////////////////////////////////////////////////////////////////////////////////////////      
+//      let sensor1 = sensors[0];
+//      let fields = Object.keys(data[sensor1]);
+
+
+//      if (!fields.length) { return; }
+//      let field1 = fields[0];
+
+      temp_data = {};
+      let res1 = [];
+      let max1 = -Infinity;
+      let min1 = Infinity;
+//      let label1 = field1 + ' - ' + sensor1;
+      let label1 = target1[0] + ' - ' + target1[1];
+      let x_tick = [];
+//      let tick_interval = Math.ceil(data[sensor1][field1].length / 7);
+      let tick_interval = Math.ceil(data[target1[1]][target1[0]].length / 7);
+      
+//      data1 = data[sensor1][field1];
+      data1 = data[target1[1]][target1[0]];
+
+      temp_data[label1] = data1;
+      data1.reverse();
+      data1.forEach((element, idx) => {
+        let value = parseFloat(element.value);
+        if (value > max1) {
+          max1 = value;
+        }
+        if (value < min1) {
+          min1 = value;
+        }
+        res1.push([idx, value]);
+        if (idx % tick_interval == 0) {
+          if (element.minute) {
+            x_tick.push([idx, element.date + ' ' + element.hour + ':' + element.minute +':00']);
+          } else if (element.hour) {
+            x_tick.push([idx, element.date + ' ' + element.hour + ':00:00']);
+          } else if (element.date) {
+            x_tick.push([idx, element.date]);
+          } else {
+            x_tick.push([idx, element.timestamp]);
+          }
+        }
+      })
+
+      let y1_max_index = 10 ** (Math.log10(max1) - 1);
+      if (!y1_max_index) { y1_max_index = 1;}
+      let y1_max = (Math.ceil(max1 / y1_max_index) + 1) * y1_max_index;
+
+      let y1_min_index = 10 ** (Math.log10(min1) - 1);
+      if (!y1_min_index) { y1_min_index = 1;}
+      let y1_min = (Math.round(min1 / y1_min_index) - 1) * y1_min_index;
+
+      if (y1_max == y1_min) {
+        y1_max += 10;
+        y1_min -= 10;
+      }
+
+      if (y1_min < 0) {
+        y1_min = 0;
+      }
+
+      dataset.push({
+              label: label1,
+              data: res1,
+              yaxis: 1,
+              points: { show: true, radius: 5, symbol: 'triangle' },
+              lines : { show: true },
+              color: "#000000",
+      });
+
+      yaxes.push({
+          position: 'left',
+          min: y1_min,
+          max: y1_max,
+          axisLabel: label1,
+          axisLabelUseCanvas: true,
+      });
+
+
+      let data2 = null;
+//      if (fields.length >= 2) {
+//          sensor2 = sensors[0];
+//          field2 = fields[1];
+//          data2 = data[sensor2][field2];
+//      } else if (sensors.length >= 2) {
+//          sensor2 = sensors[1];
+//          field2 = Object.keys(data[sensor2])[0];
+//          data2 = data[sensor2][field2];
+//      }
+
+      if(target2[0]) data2 = data[target2[1]][target2[0]];  
+
+      if (data2) {
+          let res2 = [];
+          let max2 = -Infinity;
+          let min2 = Infinity;
+
+//          let label2 = field2 + ' - ' + sensor2;
+          let label2 = target2[0] + ' - ' + target2[1];
+          temp_data[label2] = data2;
+          data2.reverse();
+          data2.forEach((element, idx) => {
+            let value = parseFloat(element.value);
+            if (value > max2) {
+              max2 = value;
+            }
+            if (value < min2) {
+              min2 = value;
+            }
+            res2.push([idx, value]);
+          })
+
+          let y2_max_index = 10 ** (Math.log10(max2) - 1);
+          if (!y2_max_index) { y2_max_index = 1;}
+          let y2_max = (Math.ceil(max2 / y2_max_index) + 1) * y2_max_index;
+
+          let y2_min_index = 10 ** (Math.log10(min2) - 1);
+          if (!y2_min_index) { y2_min_index = 1;}
+          let y2_min = (Math.round(min2 / y2_min_index) - 1) * y2_min_index;
+
+          if (y2_max == y2_min) {
+            y2_max += 10;
+            y2_min -= 10;
+          }
+
+          if (y2_min < 0) {
+            y2_min = 0;
+          }
+
+          dataset.push({
+              label: label2,
+              data: res2,
+              yaxis: 2,
+              points: { show: true, radius: 5, symbol: 'square' },
+              lines : { show: true },
+              alignTicksWithAxis: 2,
+              color: "#008800", 
+          });
+
+          yaxes.push({
+              alignTicksWithAxis: 2,
+              position: 'right',
+              min: y2_min,
+              max: y2_max,
+              axisLabel: label2,
+              axisLabelUseCanvas: true,
+          });
+      }
+
+      $.plot('#interactive', dataset, {
+        grid  : {
+          borderColor: '#f3f3f3',
+          borderWidth: 1,
+          tickColor  : '#f3f3f3',
+          hoverable: true,
+          borderWidth: 2,
+          backgroundColor: { colors: ["#ffffff", "#EDF5FF"] }
+
+        },
+        series: {
+          shadowSize: 0, // Drawing is faster without shadows
+        },
+        yaxes : yaxes,
+        xaxis : {
+          show: true,
+          //rotateTicks: 20,
+          ticks: x_tick,
+          tickColor: 'transparent'
+        }
+      });
+      $('#interactive').UseTooltip();
+
+    });
+  }
+
+  function download_field1() {
+    download_field($('#field1').val(),
+                   $('#sensor1').val(),
+                   $('#start-time')[0].value,
+                   $('#end-time')[0].value,
+                   $('#interval').val());
+  }
+
+  function download_field2() {
+    download_field($('#field2').val(),
+                   $('#sensor2').val(),
+                   $('#start-time')[0].value,
+                   $('#end-time')[0].value,
+                   $('#interval').val());
+  }
+
+  function download_field(field, sensor, starttime, endtime, interval, limit) {
+    let a = document.createElement('a');;
+    a.href = '/api/export_datas?f=' + field + '&s=' + sensor + '&st=' + starttime + '&et=' + endtime + '&i=' + interval;
+    a.download = field + '_' + sensor + '_' + starttime + '_' + endtime + '.csv';
+    a.click();
+  }
+
+  function getFormatDate(date) {
+    let year = date.getFullYear();
+    let month = '' + (date.getMonth() + 1);
+    let day = '' + date.getDate();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+  }
+  var apps = null;
+  $(() => {
+    // init plot show
+    $.plot('#interactive', [], {
+      grid: {
+        borderColor: '#f3f3f3',
+        borderWidth: 1,
+        tickColor  : '#f3f3f3'
+      },
+      series: { shadowSize: 0 },
+      yaxis: { show: true },
+      xaxis: { show: true, tickColor: 'transparent' }
+    })
+    $('#interactive').UseTooltip();
+
+    // set Vue data
+    apps = new Vue({
+      el: '#app',
+      data: function () {
+        fields = {{ fields|safe }}.filter((data)=>{return data.sensors.length});
+        active_field1 = fields[0].name;
+        active_sensor1 = fields[0]['sensors'];
+        return {
+          fields: fields,
+          active_field1: active_field1,
+          active_sensor1: active_sensor1,
+          active_field2: '',
+          active_sensor2: []
+        }
+      },
+      methods: {
+        field1_change(e) {
+          this.active_sensor1 = [];
+          this.fields.forEach((field) => {
+            if (field.name == e.target.value) {
+              this.active_sensor1 = field['sensors'];
+            }
+          })
+        },
+        field2_change(e) {
+          this.active_sensor2 = [];
+          this.fields.forEach((field) => {
+            if (field.name == e.target.value) {
+              this.active_sensor2 = field['sensors'];
+            }
+          })
+        }
+      },
+    })
+
+    // set default time
+    let d = new Date();
+    $('#end-time')[0].value = getFormatDate(d);
+    d.setDate(d.getDate() - 1);
+    $('#start-time')[0].value = getFormatDate(d);
+  });
+</script>
+{% endblock %}

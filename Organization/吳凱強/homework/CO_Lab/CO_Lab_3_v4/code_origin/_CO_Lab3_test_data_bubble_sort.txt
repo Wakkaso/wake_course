@@ -1,0 +1,41 @@
+    addu $t0, $0, $0
+    addi $t1, $0, 10
+    addi $t2, $0, 13
+    mul  $t3, $t1, $t1
+    j Jump
+bubble:
+    addi $t0, $0, 10
+    addi $t1, $0, 4
+    mul  $t4, $t0, $t1
+outer:
+    addi $t6, $0, 8
+    subu $t0, $t4, $t6
+    addi $t1, $0, 0
+inner:
+    lw   $t2, 4($t0)
+    lw   $t3, 0($t0)
+    subu $at, $t3, $t2
+    bgtz $at, no_swap
+    sw   $t2, 0($t0)
+    sw   $t3, 4($t0)
+    addi $t1, $0, 1
+no_swap:
+    addi $t5, $0, 4
+    subu $t0, $t0, $t5
+    slt  $at, $t0, $0
+    bgtz $at, next_turn
+    j    inner
+next_turn:
+    bne  $t1, $0, outer
+    j    End
+Jump:
+    subu $t2, $t2, $t1
+Loop:
+    addu $t4, $t3, $t2
+    beq  $t1, $t2, Loop
+    j    bubble
+End:
+
+//0x0  =        10 | 0x4  =         9 | 0x8  =         8 | 0xc  =         7
+//0x10 =         6 | 0x14 =         5 | 0x18 =         4 | 0x1c =         3
+//0x20 =         2 | 0x24 =         1 | 0x28 =         0 | 0x2c =         0

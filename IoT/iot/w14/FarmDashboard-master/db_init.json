@@ -1,0 +1,121 @@
+{
+	"user" : [
+		{
+			"username" : "dashboard",
+			"password" : "qwe123as",
+			"is_superuser" : true
+		},
+        {
+			"username" : "demo",
+			"password" : "demo"
+		}
+	],
+	"sensor" : [
+		{
+			"name" : "atpressure",
+			"df_name" : "AtPressure-O",
+			"alias" : "大氣壓力",
+			"unit" : "Pa",
+			"icon" : "ion-android-cloud",
+			"bg_color" : "bg-aqua"
+		},
+		{
+			"name" : "co2",
+			"df_name" : "CO2-O",
+			"alias" : "二氧化碳",
+			"unit" : "ppm",
+			"icon" : "ion-android-car",
+			"bg_color" : "bg-aqua"
+		},
+		{
+			"name" : "temperature",
+			"df_name" : "Temperature-O",
+			"alias" : "溫度",
+			"unit" : "℃",
+			"icon" : "ion-thermometer",
+			"bg_color" : "bg-aqua"
+		},
+		{
+			"name" : "humidity",
+			"df_name" : "Humidity-O",
+			"alias" : "濕度",
+			"unit" : "%",
+			"icon" : "ion-waterdrop",
+			"bg_color" : "bg-aqua"
+		},
+		{
+			"name" : "windspeed",
+			"df_name" : "WindSpeed-O",
+			"alias" : "風速",
+			"unit" : "m/s",
+			"icon" : "ion-waterdrop",
+			"bg_color" : "bg-aqua"
+		},
+		{
+			"name" : "rainmeter",
+			"df_name" : "RainMeter-O",
+			"alias" : "雨量",
+			"unit" : "mm",
+			"icon" : "ion-ios-rainy",
+			"bg_color" : "bg-aqua"
+		},
+		{
+			"name" : "bugs",
+			"df_name" : "Bug1-O",
+			"alias" : "蟲數",
+			"unit" : "隻",
+			"icon" : "ion-bug",
+			"bg_color" : "bg-green"
+		},
+		{
+			"name" : "uv",
+			"df_name" : "UV1-O",
+			"alias" : "紫外線",
+			"unit" : "mw/cm²",
+			"icon" : "ion-android-sunny",
+			"bg_color" : "bg-purple"
+		},
+		{
+			"name" : "moisture",
+			"df_name" : "Moisture1-O",
+			"alias" : "土壤濕度",
+			"unit" : "%",
+			"icon" : "ion-waterdrop",
+			"bg_color" : "bg-orange"
+		}
+	],
+	"field" : [
+		{
+			"name" : "demo",
+			"alias" : "DEMO",
+			"sensors" : [
+				{ "name" : "atpressure" },
+				{ "name" : "temperature" },
+				{ "name" : "humidity" },
+				{ "name" : "bugs" },
+				{ "name" : "uv" },
+				{
+                        "name" : "moisture",
+                        "alias" : "土壤濕度 - A"
+                },
+                {
+                        "name" : "moisture",
+                        "df_name" : "Moisture2-O",
+                        "alias" : "土壤濕度 - B"
+                }
+			]
+		}
+	],
+	"user_access" : [
+		{
+			"user" : "admin",
+			"accesses" : ["demo"],
+			"active" : "demo"
+		},
+		{
+			"user" : "demo",
+			"accesses" : ["demo"],
+			"active" : "demo"
+		}
+	]
+}

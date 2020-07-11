@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://5.iottalk.tw/da/vp/js/jquery.min.js"></script>
+  <script src="https://5.iottalk.tw/da/vp/js/jquery.mousewheel.js"></script>
+  <script src="https://5.iottalk.tw/da/vp/js/jquery-ui.custom.min.js"></script>
+  <script src="https://5.iottalk.tw/da/vp/js/RScompiler.2.1.min.js"></script>
+  <script src="https://5.iottalk.tw/da/vp/js/RSrun.2.1.min.js"></script>
+  <script src="https://5.iottalk.tw/da/vp/js/compiler.2.1.min.js"></script>
+  <script src="https://5.iottalk.tw/da/vp/js/glow.2.1.min.js"></script>
+  <script src="https://5.iottalk.tw/da/vp/js/csmapi.js"></script>
+  <script src="/static/dan.js"></script>
+  <title>VPython</title>
+</head>
+<body>
+  <div id="glowscript" class="glowscript"></div>
+  <video  height=32 id="video" muted autoplay>So that play sound OK</video>
+  <button id="goButton"><font size=5>按這繼續 Ball-throw1</font></button>
+  <script>
+   goButton.addEventListener('click', function() {
+     video.muted = false;
+     document.getElementById('goButton').style.visibility = 'hidden';
+     var script = document.createElement('script'); 
+        script.src =  "/static/dai2.js"; 
+        document.head.appendChild(script) 
+   });
+     
+//  <script src="./dai.js"></script>
+</script>
+
+</body>
+</html>

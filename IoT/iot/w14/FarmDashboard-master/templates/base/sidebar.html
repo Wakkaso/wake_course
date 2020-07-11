@@ -1,0 +1,18 @@
+<!-- Left side column. contains the logo and sidebar -->
+<aside class="main-sidebar">
+  <!-- sidebar: style can be found in sidebar.less -->
+  <section class="sidebar">
+    
+    <!-- sidebar menu: : style can be found in sidebar.less -->
+    <ul class="sidebar-menu" data-widget="tree">
+      <li class="header"></li>
+      <li><a href="/"><i class="fa fa-dashboard"></i> <span>即時資料</span></a></li>
+      <li><a href="/history"><i class="fa fa-book"></i> <span>24小時資料</span></a></li>
+      <li><a href="/compare"><i class="fa fa-signal"></i> <span>資料比對</span></a></li>
+      {% if is_superuser %}
+      <li><a href="/management"><i class="fa fa-cogs"></i> <span>系統管理</span></a></li>
+      {% endif %}
+    </ul>
+  </section>
+  <!-- /.sidebar -->
+</aside>

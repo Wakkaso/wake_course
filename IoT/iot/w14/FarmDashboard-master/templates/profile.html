@@ -1,0 +1,74 @@
+{% extends 'base/base.html' %} 
+
+{% block page_title %} 個人資料維護 {% endblock %}
+
+{% block page_content %}
+<div class="row">
+  <div class="col-sm-6 col-xs-12 col-sm-offset-3">
+    <div class="box box-primary">
+      <div class="box-header with-border">
+        <h3 class="box-title">修改密碼</h3>
+      </div>
+      <!-- form start -->
+      <form role="form">
+        <div class="box-body">
+          <div class="form-group">
+            <label for="oldpwd">Old Password</label>
+            <input type="password" class="form-control" id="oldpwd" placeholder="Old Password" required>
+	  </div>
+          <div class="form-group">
+	    <label for="newpwd">New Password</label>
+	    <input type="password" class="form-control" id="newpwd" placeholder="New Password" required>
+	  </div>
+          <div class="form-group">
+	    <label for="repnewpwd">Repeat New Password</label>
+	    <input type="password" class="form-control" id="repnewpwd" placeholder="Repeat New Password" required>
+	  </div>
+        </div>
+        <!-- /.box-body -->
+
+        <div class="box-footer">
+          <button class="btn btn-primary" onclick="mysubmit()">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- /.col -->
+</div>
+
+{% endblock %}
+
+{% block page_script %}
+<!-- Page script -->
+<script>
+  function validate() {
+    if ($('#newpwd').val() != $('#repnewpwd').val()) {
+      $('#repnewpwd')[0].setCustomValidity("Passwords Don't Match");
+      return false;
+    } else {
+      $('#repnewpwd')[0].setCustomValidity("");
+      return true;
+    }
+  }
+
+  function mysubmit() {
+    if (!validate()) {
+      return;
+    }
+
+    axios.post('/api/user/pwd',
+               {'old_password': $('#oldpwd').val(),
+                'new_password': $('#newpwd').val()})
+         .then((data, status, request) => {
+           alert('Password changed');
+           location.reload();
+         })
+         .catch((error) => {alert(error.response.data);});
+  }
+
+  $(()=>{
+    $('#newpwd').keyup(validate);
+    $('#repnewpwd').keyup(validate);
+  })
+</script>
+{% endblock %}

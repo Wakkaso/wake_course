@@ -1,0 +1,5 @@
+sqlalchemy
+requests
+flask
+python-dateutil
+pymysql

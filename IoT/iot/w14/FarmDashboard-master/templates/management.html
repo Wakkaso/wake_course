@@ -1,0 +1,679 @@
+{% extends 'base/base.html' %} 
+
+{% block page_title %} 系統管理 {% endblock %}
+
+
+{% block page_content %}
+<script type="text/x-template" id="field-sensor-table-template">
+<table class="table table-bordered table-hover dataTable">
+<thead>
+  <tr>
+    <th></th>
+    <th>name</th>
+    <th>df_name</th>
+    <th>alias</th>
+    <th>unit</th>
+    <th>icon</th>
+    <th>bg_color</th>
+    <th>alert_min</th>
+    <th>alert_max</th>
+  </tr>
+</thead>
+<draggable :element="'tbody'" :list="sensors">
+  <tr v-for="(sensor, index) in sensors">
+      <td><input type="button" @click="field_sensor_remove(index)" value="x"></td>
+      <td>{{ '{{' }}sensor.name{{ '}}' }}</td>
+      <td><input type="text" v-model="sensor.df_name"></td>
+      <td><input type="text" v-model="sensor.alias"></td>
+      <td><input type="text" v-model="sensor.unit"></td>
+      <td>
+        <div class="input-group">
+          <input type="text" v-model="sensor.icon">
+          <span class="input-group-addon">
+            <i class="fa" :class="sensor.icon"></i>
+          </span>
+        </div>
+      </td>
+      <td>
+        <div class="input-group">
+          <input type="text" v-model="sensor.bg_color">
+          <span class="input-group-addon" :class="sensor.bg_color"><i class="fa"></i></span>
+        </div>
+      </td>
+      <td><input type="number" v-model="sensor.alert_min"></td>
+      <td><input type="number" v-model="sensor.alert_max"></td>
+  </tr>
+</draggable>
+</table>
+</script>
+  <!-- TODO: combine MODAL -->
+  <div class="nav-tabs-custom" id="app">
+    <ul class="nav nav-tabs">
+      <li class="active" id="tab_user">
+        <a href="#user_management" data-toggle="tab">User</a>
+      </li>
+      <li class="" id="tab_sensor">
+        <a href="#sensor_management" data-toggle="tab">Sensor</a>
+      </li>
+      <li class="" id="tab_field">
+        <a href="#field_management" data-toggle="tab">Field</a>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- USER -->
+      <div class="tab-pane active" id="user_management">
+        <div class="row">
+          <div class="col-md-3"></div>
+          <div class="col-md-6">
+            <div class="box">
+              <!-- box-header -->
+              <div class="box-header with-border">
+                <h3 class="box-title">Users</h3>
+                <div class="box-tools">
+                  <button class="btn btn-success" @click="user_new">add</button>
+                </div>
+              </div>
+              <!-- /box-header -->
+
+
+              <!-- body table -->
+              <div class="box-body">
+                <table class="table table-bordered table-hover dataTable">
+                  <tbody>
+                    <tr>
+                      <th>username</th>
+                      <th>superuser</th>
+                    </tr>
+                    <template v-for="(user, index) in users">
+                      <tr>
+                        <td>
+                          <a href="#" @click="user_modify(index)">{{ '{{' }}user.username{{ '}}' }}</a>
+                        </td>
+                        <td>{{ '{{' }}user.is_superuser{{ '}}' }}</td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+              <!-- /body table -->
+            </div>
+            <!-- /box -->
+          </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="user_modal" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" data-target="#user_modal">&times;</button>
+                <h4 class="modal-title">User Management</h4>
+              </div>
+              <!-- form -->
+              <form class="form-horizontal">
+                <div class="modal-body">
+                  <!-- user.id -->
+                  <input type="hidden" class="form-control" id="user-id" v-model="temp_user.id" disabled>
+                  <!-- user.username -->
+                  <div class="form-group">
+                    <label for="user-username" class="col-sm-2 control-label">username</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="user-username" placeholder="username" v-model="temp_user.username" required>
+                    </div>
+                  </div>
+                  <!-- user.password -->
+                  <div class="form-group" v-if="temp_user.id === ''">
+                    <label for="user-password" class="col-sm-2 control-label">password</label>
+                    <div class="col-sm-10">
+                      <input type="password" class="form-control" id="user-password" placeholder="password" v-model="temp_user.password" required>
+                    </div>
+                  </div>
+                  <!-- user.is_superuser -->
+                  <div class="form-group">
+                    <label for="user-is_superuser" class="col-sm-2 control-label">
+                      superuser
+                    </label>
+                    <div class="col-sm-10">
+                      <div class="col-sm-12">
+                        <input type="checkbox" id="user-is_superuser" v-model="temp_user.is_superuser">
+                      </div>
+                    </div>
+                  </div>
+                  <!-- user_access.fields -->
+                  <div class="form-group">
+                    <label for="user-access" class="col-sm-2 control-label">access fields</label>
+                    <div class="col-sm-10" id="user-access">
+                      <template v-for="field in fields">
+                        <div class="col-xs-4 col-md-3 col-xl-2">
+                          <label :for="'user-access-'+field.name" style="font-weight: normal;">
+                            <input type="checkbox" v-model="temp_user.access" :value="{'alias': field.alias, 'id': field.id, 'iframe': field.iframe, 'name': field.name}" :id="'user-access-'+field.name">  {{ '{{' }}field.name{{ '}}' }}
+                          </label>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <!-- user_access.is_active -->
+                  <div class="form-group">
+                    <label for="user-active" class="col-sm-2 control-label">active field</label>
+                    <draggable class="col-sm-10" id="user-active" :list="temp_user.access" :element="'ul'">
+                      <li :for="'user-active-'+field.name" style="list-style: none;" v-for="field in temp_user.access">
+                        <input type="radio" v-model="temp_user.active" :value="field.id" :id="'user-active-'+field.name">  {{ '{{' }}field.name{{ '}}' }}
+                      </li>
+                    </draggable>
+                  </div>
+                </div>
+
+                <!-- buttons -->
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" @click="user_delete" v-if="temp_user.id !== ''">DELETE</button>
+                  <button type="button" class="btn btn-primary" @click="user_update" v-if="temp_user.id !== ''">Update</button>
+                  <button type="button" class="btn btn-success" @click="user_create" v-if="temp_user.id === ''">Create</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal" data-target="#user_modal">Close</button>
+                </div>
+              </form>
+              <!-- /form -->
+            </div>
+
+          </div>
+        </div>
+        <!-- /Modal -->
+      </div>
+      <!-- /USER -->
+
+      <!-- SENSOR -->
+      <div class="tab-pane" id="sensor_management">
+        <div class="row">
+          <div class="col-md-2"></div>
+          <div class="col-md-8">
+            <div class="box">
+              <!-- box-header -->
+              <div class="box-header with-border">
+                <h3 class="box-title">Sensors</h3>
+                <div class="box-tools">
+                  <button class="btn btn-success" @click="sensor_new">add</button>
+                </div>
+              </div>
+              <!-- /box-header -->
+
+              <!-- body table -->
+              <div class="box-body" style="overflow-x: auto;">
+                <table class="table table-bordered table-hover dataTable">
+                  <tbody>
+                    <tr>
+                      <th>name</th>
+                      <th>df_name</th>
+                      <th>alias</th>
+                      <th>unit</th>
+                      <th>icon</th>
+                      <th>color</th>
+
+                    </tr>
+                    <template v-for="(sensor, index) in sensors">
+                      <tr>
+                        <td>
+                          <a href="#" @click="sensor_modify(index)">{{ '{{' }}sensor.name{{ '}}' }}</a>
+                        </td>
+                        <td>{{ '{{' }}sensor.df_name{{ '}}' }}</td>
+                        <td>{{ '{{' }}sensor.alias{{ '}}' }}</td>
+                        <td>{{ '{{' }}sensor.unit{{ '}}' }}</td>
+                        <td>{{ '{{' }}sensor.icon{{ '}}' }}</td>
+                        <td>{{ '{{' }}sensor.bg_color{{ '}}' }}</td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+              <!-- /body table -->
+            </div>
+            <!-- /box -->
+          </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="sensor_modal" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" data-target="#sensor_modal">&times;</button>
+                <h4 class="modal-title">Sensor Management</h4>
+              </div>
+              <!-- form -->
+              <form class="form-horizontal">
+                <div class="modal-body">
+                  <!-- sensor.id -->
+                  <input type="hidden" class="form-control" id="sensor-id" v-model="temp_sensor.id" disabled>
+                  <!-- sensor.name -->
+                  <div class="form-group">
+                    <label for="sensor-name" class="col-sm-2 control-label">name</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="sensor-name" placeholder="name, ex: uv" v-model="temp_sensor.name" required>
+                    </div>
+                  </div>
+                  <!-- sensor.df_name -->
+                  <div class="form-group">
+                    <label for="sensor-name" class="col-sm-2 control-label">df_name</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="sensor-df_name" placeholder="df name, ex: UV1" v-model="temp_sensor.df_name" required>
+                    </div>
+                  </div>
+                  <!-- sensor.alias -->
+                  <div class="form-group">
+                    <label for="sensor-name" class="col-sm-2 control-label">alias</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="sensor-alias" placeholder="alias, ex: 紫外線" v-model="temp_sensor.alias" required>
+                    </div>
+                  </div>
+                  <!-- sensor.unit -->
+                  <div class="form-group">
+                    <label for="sensor-unit" class="col-sm-2 control-label">unit</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="sensor-unit" placeholder="unit, ex: mw/cm²" v-model="temp_sensor.unit">
+                    </div>
+                  </div>
+                  <!-- sensor.icon -->
+                  <div class="form-group">
+                    <label for="sensor-icon" class="col-sm-2 control-label">icon</label>
+                    <div class="col-sm-10">
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="sensor-icon" placeholder="icon, ex: ion-android-sunny" v-model="temp_sensor.icon">
+                        <span class="input-group-addon"><i class="fa" :class="temp_sensor.icon"></i></span>
+                      </div>
+                      <span>You can use icon <a href="https://adminlte.io/themes/AdminLTE/pages/UI/icons.html" target="_blank">here</a>.</span>
+                    </div>                    
+                  </div>
+                  <!-- sensor.bg_color -->
+                  <div class="form-group">
+                    <label for="sensor-bg_color" class="col-sm-2 control-label">color</label>
+                    <div class="col-sm-10">
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="sensor-bg_color" placeholder="background color, ex: bg-aqua" v-model="temp_sensor.bg_color">
+                        <span class="input-group-addon" :class="temp_sensor.bg_color"><i class="fa"></i></span>
+                      </div>
+                      <span>You can use <a href="http://basscss.com/v7/docs/background-colors/" target="_blank">bootstrap bg-color</a>.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- buttons -->
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" @click="sensor_delete" v-if="temp_sensor.id !== ''">DELETE</button>
+                  <button type="button" class="btn btn-info" @click="sensor_update" v-if="temp_sensor.id !== ''">Update</button>
+                  <button type="button" class="btn btn-success" @click="sensor_create" v-if="temp_sensor.id === ''">Create</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal" data-target="#sensor_modal">Close</button>
+                </div>
+              </form>
+              <!-- /form -->
+            </div>
+
+          </div>
+        </div>
+        <!-- /Modal -->
+      </div>
+      <!-- /SENSOR -->
+
+
+      <!-- FIELD -->
+      <div class="tab-pane" id="field_management">
+        <div class="row">
+          <div class="col-md-3"></div>
+          <div class="col-md-6">
+            <div class="box">
+              <!-- box-header -->
+              <div class="box-header with-border">
+                <h3 class="box-title">Fields</h3>
+                <div class="box-tools">
+                  <button class="btn btn-success" @click="field_new">add</button>
+                </div>
+              </div>
+              <!-- /box-header -->
+
+              <!-- body table -->
+              <div class="box-body">
+                <table class="table table-bordered table-hover dataTable">
+                  <tbody>
+                    <tr>
+                      <th>name</th>
+                      <th>alias</th>
+                    </tr>
+                    <template v-for="(field, index) in fields">
+                      <tr>
+                        <td>
+                          <a href="#" @click="field_modify(index)">{{ '{{' }}field.name{{ '}}' }}</a>
+                        </td>
+                        <td>{{ '{{' }}field.alias{{ '}}' }}</td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+              <!-- /body table -->
+            </div>
+            <!-- /box -->
+          </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="field_modal" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" data-target="#field_modal">&times;</button>
+                <h4 class="modal-title">Field Management</h4>
+              </div>
+              <!-- form -->
+              <form class="form-horizontal">
+                <div class="modal-body">
+                  <!-- user.id -->
+                  <input type="hidden" class="form-control" id="field-id" v-model="temp_field.id" disabled>
+                  <!-- field.name -->
+                  <div class="form-group">
+                    <label for="field-name" class="col-sm-2 control-label">name</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="field-name" placeholder="name, ex: bao1" v-model="temp_field.name" required>
+                    </div>
+                  </div>
+                  <!-- field.alias -->
+                  <div class="form-group">
+                    <label for="field-alias" class="col-sm-2 control-label">alias</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="field-alias" placeholder="alias, ex: 寶山一場" v-model="temp_field.alias" required>
+                    </div>
+                  </div>
+                  <!-- field.iframe -->
+                  <div class="form-group">
+                    <label for="field-iframe" class="col-sm-2 control-label">iframe URL</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="field-iframe" placeholder="iframe URL, ex: http://tw.google.com" v-model="temp_field.iframe">
+                    </div>
+                  </div>
+                  <!-- field.sensors -->
+                  <div class="form-group">
+                    <label for="field-sensor" class="col-sm-2 control-label">sensors</label>
+                    <div class="input-group">
+                      <div class="input-group-btn">
+                        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                          <span class="fa fa-plus"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <template v-for="(sensor, index) in sensors">
+                            <li><a @click="field_sensor_add(index)">{{ '{{' }}sensor.name{{ '}}' }}</a></li>
+                          </template>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-sm-12" id="field-sensor" style="overflow-x: auto;">
+                      <field-sensor-table v-model="temp_field.sensors" :remove="field_sensor_remove"></field-sensor-table>
+                      <!-- TODO -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- buttons -->
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" @click="field_delete" v-if="temp_field.id !== ''">DELETE</button>
+                  <button type="button" class="btn btn-info" @click="field_update" v-if="temp_field.id !== ''">Update</button>
+                  <button type="button" class="btn btn-success" @click="field_create" v-if="temp_field.id === ''">Create</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal" data-target="#field_modal">Close</button>
+                </div>
+              </form>
+              <!-- /form -->
+            </div>
+
+          </div>
+        </div>
+        <!-- /Modal -->
+      </div>
+      <!-- /FIELD -->
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block page_script %}
+<!-- CDNJS :: Sortable (https://cdnjs.com/) -->
+<script src="/static/vue/Sortable.min.js"></script>
+<!-- CDNJS :: Vue.Draggable (https://cdnjs.com/) -->
+<script src="/static/vue/vuedraggable.min.js"></script>
+<script>
+  var app = null;
+
+  $(() => {
+    var fieldSensorTable = {
+      template: '#field-sensor-table-template',
+      props: {
+        value: Array,
+        remove: Function
+      },
+      name: 'field-sensor-table',
+      computed: {
+        sensors: {
+          get() {
+            return this.value
+          },
+          set(value) {
+            this.$emit('input', value)
+          }
+        }
+      },
+      methods: {
+        field_sensor_remove(index) {
+          this.remove(index);
+        }
+      }
+    };
+
+    // set Vue data
+    app = new Vue({
+      components:{fieldSensorTable: fieldSensorTable},
+      el: '#app',
+      data: () => {
+        
+        return {
+          users: [],
+          sensors: [],
+          fields: [],
+          temp_user: {
+            id: '',
+            username: '',
+            password: '',
+            is_superuser: false,
+            access: [],
+            active: null,
+          },
+          temp_sensor: {
+            id: '',
+            name: '',
+            df_name: '',
+            alias: '',
+            unit: '',
+            icon: '',
+            bg_color: '',
+          },
+          temp_field: {
+            id: '',
+            name: '',
+            alias: '',
+            iframe: '',
+            sensors: [],
+          }
+        }
+      },
+      mounted () {
+        // init data
+        this.user_reload();
+        this.sensor_reload();
+        this.field_reload();
+      },
+      methods: {
+        // -- USER --
+        user_reload() {
+          axios.get('/api/user')
+               .then(response => (this.users = response.data))
+               .catch((error) => {alert(error);});
+        },
+        user_new() {
+          this.temp_user = {
+            id: '',
+            username: '',
+            password: '',
+            is_superuser: false,
+            access: [],
+            active: null,
+          }
+          $('#user_modal').modal('toggle');
+        },
+        user_create() {
+          // TODO: validate data.
+          axios.post('/api/user', this.temp_user)
+               .then((data, status, request) => {
+                      this.user_reload();
+                      $('#user_modal').modal('toggle');
+               })
+               .catch((error) => {alert(error);});
+        },
+        user_modify(index) {
+          // clone modify data, not alias
+          this.temp_user = JSON.parse(JSON.stringify(this.users[index]));
+          $('#user_modal').modal('toggle');
+        },
+        user_update() {
+          // TODO: validate data.
+          axios.put('/api/user', this.temp_user)
+               .then((data, status, request) => {
+                      this.user_reload();
+                      $('#user_modal').modal('toggle');
+               })
+               .catch((error) => {alert(error);});
+        },
+        user_delete() {
+          axios.delete('/api/user?id=' + this.temp_user.id)
+               .then((data, status, request) => {
+                      this.user_reload();
+                      $('#user_modal').modal('toggle');
+               })
+               .catch((error) => {alert(error);});
+        },
+
+        // -- SENSOR --
+        sensor_reload() {
+          axios.get('/api/sensor')
+               .then(response => (this.sensors = response.data))
+               .catch((error) => {alert(error);});
+        },
+        sensor_new() {
+          this.temp_sensor = {
+            id: '',
+            name: '',
+            df_name: '',
+            alias: '',
+            unit: '',
+            icon: '',
+            bg_color: '',
+          }
+          $('#sensor_modal').modal('toggle');
+        },
+        sensor_create() {
+          // TODO: validate data.
+          axios.post('/api/sensor', this.temp_sensor)
+               .then((data, status, request) => {
+                      this.sensor_reload();
+                      $('#sensor_modal').modal('toggle');
+               })
+               .catch((error) => {alert(error);});
+        },
+        sensor_modify(index) {
+          // clone modify data, not alias
+          this.temp_sensor = JSON.parse(JSON.stringify(this.sensors[index]));
+          $('#sensor_modal').modal('toggle');
+        },
+        sensor_update() {
+          // TODO: validate data.
+          axios.put('/api/sensor', this.temp_sensor)
+               .then((data, status, request) => {
+                      this.sensor_reload();
+                      $('#sensor_modal').modal('toggle');
+               })
+               .catch((error) => {alert(error);});
+        },
+        sensor_delete() {
+          axios.delete('/api/sensor?id=' + this.temp_sensor.id)
+               .then((data, status, request) => {
+                      this.sensor_reload();
+                      $('#sensor_modal').modal('toggle');
+               })
+               .catch((error) => {alert(error);});
+        },
+
+        // -- FIELD --
+        field_reload() {
+          axios.get('/api/field')
+               .then(response => (this.fields = response.data))
+               .catch((error) => {alert(error);});
+        },
+        field_new() {
+          this.temp_field = {
+            id: '',
+            name: '',
+            alias: '',
+            iframe: '',
+            sensors: [],
+          }
+          $('#field_modal').modal('toggle');
+        },
+        field_create() {
+          // TODO: validate data.
+          if (!this.temp_field.name) {
+            alert('Feild name cannot empty');
+          } else {
+            axios.post('/api/field', this.temp_field)
+                 .then((data, status, request) => {
+                        this.field_reload();
+                        $('#field_modal').modal('toggle');
+                 })
+                 .catch((error) => {alert(error);});
+          }
+        },
+        field_modify(index) {
+          // clone modify data, not alias
+          this.temp_field = JSON.parse(JSON.stringify(this.fields[index]));
+          $('#field_modal').modal('toggle');
+        },
+        field_update() {
+          // TODO: validate data.
+          axios.put('/api/field', this.temp_field)
+               .then((data, status, request) => {
+                      this.field_reload();
+                      $('#field_modal').modal('toggle');
+               })
+               .catch((error) => {alert(error);});
+        },
+        field_delete() {
+          if (confirm("DB內相關資料也將刪除，確定嗎?")) {
+            axios.delete('/api/field?id=' + this.temp_field.id)
+                 .then((data, status, request) => {
+                        this.field_reload();
+                        $('#field_modal').modal('toggle');
+                 })
+                 .catch((error) => {alert(error);});
+          }
+        },
+        field_sensor_add(index) {
+          new_sensor = JSON.parse(JSON.stringify(this.sensors[index]));
+          new_sensor['sensor'] = new_sensor.id;
+          new_sensor.alert_min = 0;
+          new_sensor.alert_max = 0;
+          this.temp_field.sensors.push(new_sensor);
+        },
+        field_sensor_remove(index) {
+          this.temp_field.sensors.splice(index, 1);
+        }
+      }
+    });
+
+  });
+
+  // 
+</script>
+{% endblock %}
